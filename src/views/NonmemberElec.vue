@@ -61,11 +61,11 @@ const elecPt = ref(0.5)
 const powerPt = ref(0.5)
 
 const handleItemUpdate = (data: Record<string, any>) => {
-  const itemType = data.type as string
-  if (itemType === 'electronic') {
-    electronicWeight.value = Math.round((electronicWeight.value + 0.5) * 10) / 10
-  } else if (itemType === 'battery') {
-    batteryWeight.value = Math.round((batteryWeight.value + 0.1) * 10) / 10
+  if (data.appliance != null) {
+    electronicWeight.value = Math.round((electronicWeight.value + data.appliance) * 10) / 10
+  }
+  if (data.power_bank != null) {
+    batteryWeight.value = Math.round((batteryWeight.value + data.power_bank) * 10) / 10
   }
 }
 

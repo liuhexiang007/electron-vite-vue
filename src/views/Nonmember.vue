@@ -84,15 +84,17 @@ const glassPt = ref(1)
 const paperPt = ref(1)
 
 const handleItemUpdate = (data: Record<string, any>) => {
-  const itemType = data.type as string
-  if (itemType === 'plastic_bottle') {
-    plasticCount.value++
-  } else if (itemType === 'can') {
-    metalCount.value++
-  } else if (itemType === 'glass_bottle') {
-    glassCount.value++
-  } else if (itemType === 'carton') {
-    paperWeight.value = Math.round((paperWeight.value + 0.1) * 10) / 10
+  if (data.plastic_bottle != null) {
+    plasticCount.value = Math.round((plasticCount.value + data.plastic_bottle) * 10) / 10
+  }
+  if (data.can != null) {
+    metalCount.value = Math.round((metalCount.value + data.can) * 10) / 10
+  }
+  if (data.glass_bottle != null) {
+    glassCount.value = Math.round((glassCount.value + data.glass_bottle) * 10) / 10
+  }
+  if (data.carton != null) {
+    paperWeight.value = Math.round((paperWeight.value + data.carton) * 10) / 10
   }
 }
 
