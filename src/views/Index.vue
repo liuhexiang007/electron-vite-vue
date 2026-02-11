@@ -3,21 +3,29 @@
     <!-- 标题图片 -->
     <img class="title-img" src="@/assets/folder/1/title.png" />
     <!-- 会员卡片 -->
-    <Clickable class="member-wrap" @click="goToRecycle">
+    <LoadingButton class="member-wrap" @click="goToRecycle">
       <img class="member-img" src="@/assets/folder/1/member.png" />
-    </Clickable>
+    </LoadingButton>
     <!-- 非会员卡片 -->
-    <Clickable class="non-member-wrap" @click="goToNonmember">
+    <LoadingButton class="non-member-wrap" @click="goToNonmember">
       <img class="non-member-img" src="@/assets/folder/1/non-member.png" />
-    </Clickable>
+    </LoadingButton>
     <!-- 请按按钮开始回收 -->
     <img class="btn-hint-img" src="@/assets/folder/1/btn-hint.png" />
     <!-- 底部banner -->
     <img class="bg-banner-img" src="@/assets/folder/1/bg-banner.png" />
     <!-- 容量 -->
     <img class="volume-label-img" src="@/assets/folder/1/volume-label.png" />
-    <!-- 分类组 -->
-    <img class="group-img" src="@/assets/folder/1/group.png" />
+    <!-- 动态容量进度条 -->
+    <VolumeBar
+      class="volume-bar-pos"
+      :items="volumeItems"
+      :barHeight="240"
+      :barWidth="18"
+      :gap="8"
+      :borderWidth="3"
+      :padding="3"
+    />
     <!-- 本機可回收 Recyclables -->
     <div class="recyclables-label">
       <span class="recyclables-zh">本機可回收</span>
@@ -33,16 +41,29 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import GlobalBg from '@/components/GlobalBg.vue'
-import Clickable from '@/components/Clickable.vue'
+import LoadingButton from '@/components/LoadingButton.vue'
 import CategoryIcon from '@/components/CategoryIcon.vue'
+import VolumeBar from '@/components/VolumeBar.vue'
 import { WebSocketService, eventBus } from '@/utils/WebSocketService'
 
 const plasticPt = ref(1)
 const metalPt = ref(1)
 const glassPt = ref(1)
 const paperPt = ref(1)
+
+const paperProportion = ref(0)
+const metalProportion = ref(0)
+const plasticProportion = ref(0)
+const glassProportion = ref(0)
+
+const volumeItems = computed(() => [
+  { key: 'plastic', label: '膠樽', value: plasticProportion.value },
+  { key: 'metal', label: '金屬', value: metalProportion.value },
+  { key: 'glass', label: '玻璃', value: glassProportion.value },
+  { key: 'paper', label: '紙張', value: paperProportion.value }
+])
 
 const goToRecycle = () => {
   WebSocketService.getInstance().openAsMember()
@@ -59,12 +80,24 @@ const handleRateConfig = (config: Record<string, any>) => {
   if (config.paper != null) paperPt.value = config.paper
 }
 
+const handleProportion = (data: Record<string, number>) => {
+  if (data.paper != null) paperProportion.value = data.paper
+  if (data.metal != null) metalProportion.value = data.metal
+  if (data.plastic != null) plasticProportion.value = data.plastic
+  if (data.glass != null) glassProportion.value = data.glass
+}
+
 onMounted(() => {
   eventBus.on('ws-rate-config', handleRateConfig)
+  eventBus.on('ws-proportion', handleProportion)
+  // 读取已缓存的容量数据
+  const cached = WebSocketService.getInstance().proportion
+  handleProportion(cached)
 })
 
 onUnmounted(() => {
   eventBus.off('ws-rate-config', handleRateConfig)
+  eventBus.off('ws-proportion', handleProportion)
 })
 </script>
 
@@ -124,12 +157,12 @@ onUnmounted(() => {
   left: 40px;
 }
 
-/* 容量柱状图 - 放入banner左下角 */
-.group-img {
+/* 动态容量进度条 - 在容量标签下方居中 */
+.volume-bar-pos {
   position: absolute;
-  width: 170px;
-  bottom: 60px;
-  left: 40px;
+  bottom: 50px;
+  left: 120px;
+  transform: translateX(-50%);
 }
 
 /* 本機可回收标签 - 放入banner内右上角 */

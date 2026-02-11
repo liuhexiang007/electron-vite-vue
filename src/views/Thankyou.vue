@@ -36,6 +36,7 @@ const router = useRouter()
 
 const goHome = () => {
   const ws = WebSocketService.getInstance()
+  // uiType=1 是二合一(电子产品) → /recycle, uiType=0 是四合一 → /
   if (ws.uiType === 1) {
     router.replace('/recycle')
   } else {

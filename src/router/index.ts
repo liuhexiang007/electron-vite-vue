@@ -50,6 +50,26 @@ const routes: RouteRecordRaw[] = [
     path: '/offline-normal',
     name: 'OfflineNormal',
     component: () => import('../views/OfflineNormal.vue')
+  },
+  {
+    path: '/door-closing',
+    name: 'DoorClosing',
+    component: () => import('../views/DoorClosing.vue')
+  },
+  {
+    path: '/door-opening',
+    name: 'DoorOpening',
+    component: () => import('../views/DoorOpening.vue')
+  },
+  {
+    path: '/manual-close',
+    name: 'ManualClose',
+    component: () => import('../views/ManualClose.vue')
+  },
+  {
+    path: '/manual-open',
+    name: 'ManualOpen',
+    component: () => import('../views/ManualOpen.vue')
   }
 ]
 

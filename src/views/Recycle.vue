@@ -3,21 +3,29 @@
     <!-- 标题图片 -->
     <img class="title-img" src="@/assets/folder/1/title.png" />
     <!-- 会员卡片 -->
-    <Clickable class="member-wrap" @click="goToRecycle">
+    <LoadingButton class="member-wrap" @click="goToRecycle">
       <img class="member-img" src="@/assets/folder/1/member.png" />
-    </Clickable>
+    </LoadingButton>
     <!-- 非会员卡片 -->
-    <Clickable class="non-member-wrap" @click="goToNonmember">
+    <LoadingButton class="non-member-wrap" @click="goToNonmember">
       <img class="non-member-img" src="@/assets/folder/1/non-member.png" />
-    </Clickable>
+    </LoadingButton>
     <!-- 请按按钮开始回收 -->
     <img class="btn-hint-img" src="@/assets/folder/1/btn-hint.png" />
     <!-- 底部banner -->
     <img class="bg-banner-img" src="@/assets/folder/1/bg-banner.png" />
     <!-- 容量 -->
     <img class="volume-label-img" src="@/assets/folder/1/volume-label.png" />
-    <!-- 分类组 -->
-    <img class="group-img" src="@/assets/folder/1/group-elec.png" />
+    <!-- 动态容量进度条 -->
+    <VolumeBar
+      class="volume-bar-pos"
+      :items="volumeItems"
+      :barHeight="240"
+      :barWidth="22"
+      :gap="10"
+      :borderWidth="3"
+      :padding="3"
+    />
     <!-- 本機可回收 Recyclables -->
     <div class="recyclables-label">
       <span class="recyclables-zh">本機可回收</span>
@@ -30,14 +38,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import GlobalBg from '@/components/GlobalBg.vue'
-import Clickable from '@/components/Clickable.vue'
+import LoadingButton from '@/components/LoadingButton.vue'
 import CategoryIcon from '@/components/CategoryIcon.vue'
+import VolumeBar from '@/components/VolumeBar.vue'
 import { WebSocketService, eventBus } from '@/utils/WebSocketService'
 
 const elecPt = ref(0.5)
 const powerPt = ref(0.5)
+
+// 容量比例 (0~1)
+const elecProportion = ref(0)
+const batteryProportion = ref(0)
+
+const volumeItems = computed(() => [
+  { key: 'electronicWaste', label: '家電', value: elecProportion.value },
+  { key: 'battery', label: '充電池', value: batteryProportion.value }
+])
 
 const goToRecycle = () => {
   WebSocketService.getInstance().openAsMember()
@@ -52,12 +70,22 @@ const handleRateConfig = (config: Record<string, any>) => {
   if (config.battery != null) powerPt.value = config.battery
 }
 
+const handleProportion = (data: Record<string, number>) => {
+  if (data.electronicWaste != null) elecProportion.value = data.electronicWaste
+  if (data.battery != null) batteryProportion.value = data.battery
+}
+
 onMounted(() => {
   eventBus.on('ws-rate-config', handleRateConfig)
+  eventBus.on('ws-proportion', handleProportion)
+  // 读取已缓存的容量数据
+  const cached = WebSocketService.getInstance().proportion
+  handleProportion(cached)
 })
 
 onUnmounted(() => {
   eventBus.off('ws-rate-config', handleRateConfig)
+  eventBus.off('ws-proportion', handleProportion)
 })
 </script>
 
@@ -115,11 +143,12 @@ onUnmounted(() => {
   left: 40px;
 }
 
-.group-img {
+/* 动态容量进度条 - 在容量标签下方居中 */
+.volume-bar-pos {
   position: absolute;
-  width: 100px;
-  bottom: 80px;
-  left: 55px;
+  bottom: 50px;
+  left: 120px;
+  transform: translateX(-50%);
 }
 
 .recyclables-label {

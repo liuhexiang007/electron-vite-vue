@@ -43,15 +43,15 @@
         <span class="count-unit">PCS</span>
       </div>
       <div class="count-item">
-        <span class="count-num">{{ paperWeight }}</span>
+        <span class="count-num">{{ (paperWeight / 1000).toFixed(2) }}</span>
         <span class="count-unit">kg</span>
       </div>
     </div>
 
     <!-- 完成按钮 -->
-    <Clickable class="finish-btn-wrap" @click="onFinish">
+    <LoadingButton class="finish-btn-wrap" @click="onFinish">
       <img class="finish-btn" src="@/assets/folder/2/button.png" />
-    </Clickable>
+    </LoadingButton>
 
     <!-- 底部banner -->
     <img class="bottom-banner" src="@/assets/folder/2/point banner.png" />
@@ -70,7 +70,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import GlobalBg from '@/components/GlobalBg.vue'
 import CountdownSmall from '@/components/CountdownSmall.vue'
-import Clickable from '@/components/Clickable.vue'
+import LoadingButton from '@/components/LoadingButton.vue'
 import { WebSocketService, eventBus } from '@/utils/WebSocketService'
 
 const plasticCount = ref(0)
