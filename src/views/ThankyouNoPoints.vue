@@ -1,18 +1,18 @@
 <template>
   <GlobalBg>
-    <!-- 扫描二维码整体图片 -->
-    <img class="scan-qr-img" src="@/assets/folder/4/扫描二维码.png" />
+    <!-- 感谢回收标题 -->
+    <img class="thankyou-img" src="@/assets/folder/4/感谢回收.png" />
 
-    <!-- 中心扫码图案 -->
-    <img class="scan-icon" src="@/assets/folder/1/scan_qr.png" />
+    <!-- 中心coins图案 -->
+    <img class="coins-img" src="@/assets/folder/3/coins.png" />
 
-    <!-- 取消按钮 -->
-    <Clickable class="cancel-btn-wrap" @click="goBack">
-      <img class="cancel-btn" src="@/assets/folder/1/button.png" />
+    <!-- 完成按钮 -->
+    <Clickable class="finish-btn-wrap" @click="goHome">
+      <img class="finish-btn" src="@/assets/folder/3/button.png" />
     </Clickable>
 
     <!-- 倒计时 -->
-    <Countdown :initialCount="60" @timeout="goBack" />
+    <Countdown :initialCount="60" @timeout="goHome" />
   </GlobalBg>
 </template>
 
@@ -25,11 +25,9 @@ import { WebSocketService } from '@/utils/WebSocketService'
 
 const router = useRouter()
 
-const goBack = () => {
-  // 取消扫码，需要调用 close() 来结束流程
-  WebSocketService.getInstance().close()
-  
+const goHome = () => {
   const ws = WebSocketService.getInstance()
+  // uiType=1 是二合一(电子产品) → /recycle, uiType=0 是四合一 → /
   if (ws.uiType === 1) {
     router.replace('/recycle')
   } else {
@@ -39,30 +37,30 @@ const goBack = () => {
 </script>
 
 <style scoped>
-.scan-qr-img {
+.thankyou-img {
   position: absolute;
-  width: 820px;
-  top: 450px;
+  width: 400px;
+  top: 380px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-.scan-icon {
+.coins-img {
   position: absolute;
-  width: 400px;
+  width: 220px;
   top: 700px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-.cancel-btn-wrap {
+.finish-btn-wrap {
   position: absolute;
-  bottom: 480px;
+  bottom: 700px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-.cancel-btn {
+.finish-btn {
   width: 360px;
 }
 </style>

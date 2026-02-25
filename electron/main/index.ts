@@ -276,63 +276,6 @@ function disableDesktopGestures() {
   console.log('已禁用桌面手势')
 }
 
-/**
- * 通过 xinput 禁用触摸屏的多点触控能力
- * 
- * 原理：将触摸屏从 XI2 触摸模式切换为普通指针模式
- * 这样 Mutter 就收不到多指触摸事件，无法触发三指手势
- * 单指触摸仍然正常工作（作为鼠标指针）
- * 
- * 支持 X11 和 Xwayland 两种会话：
- * - X11: 设备名通常为 ILITEK 等硬件名
- * - Xwayland: 设备名为 xwayland-touch:N
- * 
- * 这是用户空间操作，安全可逆，重启后恢复
- */
-function disableTouchscreenMultitouch() {
-  const { execSync } = require('child_process') as typeof import('child_process')
-  try {
-    // 获取所有 xinput 设备
-    const xinputList = execSync('xinput list --short 2>/dev/null || true').toString()
-    const lines = xinputList.split('\n')
-
-    // 匹配触摸屏设备的关键词（ILITEK 硬件名 或 xwayland-touch 兼容层）
-    const touchKeywords = ['ILITEK', 'xwayland-touch', 'touch']
-
-    for (const line of lines) {
-      const lineLower = line.toLowerCase()
-      const isTouch = touchKeywords.some(kw => lineLower.includes(kw.toLowerCase()))
-      if (!isTouch) continue
-      // 排除键盘设备
-      if (lineLower.includes('keyboard')) continue
-
-      const match = line.match(/id=(\d+)/)
-      if (!match) continue
-      const deviceId = match[1]
-      const deviceName = line.trim()
-
-      console.log(`处理触摸设备: ${deviceName} (id=${deviceId})`)
-
-      try {
-        // 将触摸设备的模式设为 RELATIVE（指针模式而非触摸模式）
-        execSync(`xinput set-mode ${deviceId} RELATIVE 2>/dev/null || true`)
-        console.log(`  已将设备 ${deviceId} 设为 RELATIVE 模式`)
-      } catch (_) { /* 忽略 */ }
-
-      try {
-        // 尝试禁用设备的 direct touch 属性（如果存在）
-        execSync(`xinput set-prop ${deviceId} "Device Enabled" 1 2>/dev/null || true`)
-        // 限制触摸点数为1（如果属性存在）
-        execSync(`xinput set-prop ${deviceId} "Abs MT Slot" 0 2>/dev/null || true`)
-        console.log(`  已尝试限制设备 ${deviceId} 的触摸点数`)
-      } catch (_) { /* 忽略 */ }
-    }
-
-    console.log('已处理触摸屏设备')
-  } catch (e) {
-    console.error('处理触摸屏设备失败:', e)
-  }
-}
 
 app.on('window-all-closed', () => {
   win = null

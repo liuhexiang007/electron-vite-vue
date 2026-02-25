@@ -43,7 +43,7 @@
     <span class="pt-overlay pt-power">{{ powerPt }}</span>
 
     <!-- 倒计时 -->
-    <CountdownSmall :initialCount="30" @timeout="onTimeout" />
+    <CountdownSmall :initialCount="60" @timeout="onTimeout" />
   </GlobalBg>
 </template>
 

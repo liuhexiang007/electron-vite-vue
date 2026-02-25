@@ -62,7 +62,7 @@
     <span class="pt-overlay pt-paper">{{ paperPt }}</span>
 
     <!-- 倒计时 -->
-    <CountdownSmall :initialCount="30" @timeout="onTimeout" />
+    <CountdownSmall :initialCount="60" @timeout="onTimeout" />
   </GlobalBg>
 </template>
 
@@ -84,17 +84,23 @@ const glassPt = ref(1)
 const paperPt = ref(1)
 
 const handleItemUpdate = (data: Record<string, any>) => {
-  if (data.plastic_bottle != null) {
-    plasticCount.value = Math.round((plasticCount.value + data.plastic_bottle) * 10) / 10
+  // 纸张的特殊格式：{paper: 2455.00}
+  if (data.paper != null) {
+    paperWeight.value = Math.round((paperWeight.value + data.paper) * 10) / 10
+    return
   }
-  if (data.can != null) {
-    metalCount.value = Math.round((metalCount.value + data.can) * 10) / 10
-  }
-  if (data.glass_bottle != null) {
-    glassCount.value = Math.round((glassCount.value + data.glass_bottle) * 10) / 10
-  }
-  if (data.carton != null) {
-    paperWeight.value = Math.round((paperWeight.value + data.carton) * 10) / 10
+
+  // 其他类型的标准格式：{type: 'xxx', qty: 1, weight: 33.20}
+  const type = data.type as string
+  const qty = data.qty as number
+
+  // 塑料瓶、金属罐、玻璃瓶：直接显示后端返回的数量（不累加）
+  if (type === 'plastic_bottle') {
+    plasticCount.value = qty
+  } else if (type === 'can') {
+    metalCount.value = qty
+  } else if (type === 'glass_bottle') {
+    glassCount.value = qty
   }
 }
 

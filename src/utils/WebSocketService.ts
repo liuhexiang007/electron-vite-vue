@@ -43,6 +43,7 @@ export const UIAction = {
   SHOW_QR_SCANNER: 'SHOW_QR_SCANNER',
   OPEN_DOOR: 'OPEN_DOOR',
   END: 'END',
+  END_NO_POINTS: 'END_NO_POINTS',
   TIPS_OPEN_AUTO: 'TIPS_OPEN_AUTO',
   TIPS_CLOSE_AUTO: 'TIPS_CLOSE_AUTO',
   TIPS_OPEN: 'TIPS_OPEN',
@@ -219,24 +220,42 @@ export class WebSocketService {
           }
         }, 3000)
       }
+    } else if (action === 'CONFIRM_START') {
+      // ManualOpen.vue 发送 CONFIRM_START 后，模拟后端返回跳转到投放页面
+      setTimeout(() => {
+        this.log('[模拟响应] CONFIRM_START -> OPEN_DOOR')
+        this.handleBackendMessage('{"action":"UI_ACTION","data":"OPEN_DOOR"}')
+      }, 500)
     } else if (action === 'DOOR_OPENED') {
       setTimeout(() => {
         this.handleBackendMessage('{"action":"UI_ACTION","data":"OPEN_DOOR"}')
       }, 500)
+    } else if (action === 'CONFIRM') {
+      // ManualClose.vue 发送 CONFIRM 后，根据用户状态决定跳转到哪个感谢页面
+      setTimeout(() => {
+        const hasUser = this.currentUser && Object.keys(this.currentUser).length > 0
+        const endAction = hasUser ? 'END' : 'END_NO_POINTS'
+        this.log(`[模拟响应] CONFIRM -> ${endAction}`)
+        this.handleBackendMessage(`{"action":"UI_ACTION","data":"${endAction}"}`)
+      }, 500)
     } else if (action === 'CLOSE') {
+      // 根据用户状态决定跳转到哪个感谢页面
+      const hasUser = this.currentUser && Object.keys(this.currentUser).length > 0
+      const endAction = hasUser ? 'END' : 'END_NO_POINTS'
+      
       if (this.uiType === 1) {
         setTimeout(() => {
           this.handleBackendMessage('{"action":"UI_ACTION","data":"TIPS_CLOSE"}')
         }, 500)
         setTimeout(() => {
-          this.handleBackendMessage('{"action":"UI_ACTION","data":"END"}')
+          this.handleBackendMessage(`{"action":"UI_ACTION","data":"${endAction}"}`)
         }, 4000)
       } else {
         setTimeout(() => {
           this.handleBackendMessage('{"action":"UI_ACTION","data":"TIPS_CLOSE_AUTO"}')
         }, 500)
         setTimeout(() => {
-          this.handleBackendMessage('{"action":"UI_ACTION","data":"END"}')
+          this.handleBackendMessage(`{"action":"UI_ACTION","data":"${endAction}"}`)
         }, 3000)
       }
     }
@@ -307,6 +326,7 @@ export class WebSocketService {
     } else if (action === 'SHOW_QR_SCANNER') { url = '/scan' }
     else if (action === 'OPEN_DOOR') { url = this.uiType === 1 ? '/nonmember-elec' : '/nonmember' }
     else if (action === 'END') { url = '/thankyou' }
+    else if (action === 'END_NO_POINTS') { url = '/thankyou-no-points' }
     else if (action === 'TIPS_OPEN_AUTO') { url = '/door-opening' }
     else if (action === 'TIPS_CLOSE_AUTO') { url = '/door-closing' }
     else if (action === 'TIPS_OPEN') { url = '/manual-open' }

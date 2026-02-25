@@ -21,7 +21,7 @@
     </Clickable>
 
     <!-- 倒计时 -->
-    <Countdown :initialCount="30" @timeout="goHome" />
+    <Countdown :initialCount="60" @timeout="goHome" />
   </GlobalBg>
 </template>
 

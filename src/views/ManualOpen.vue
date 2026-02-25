@@ -19,8 +19,8 @@ import LoadingButton from '@/components/LoadingButton.vue'
 import { WebSocketService } from '@/utils/WebSocketService'
 
 const onConfirm = () => {
-  // 確認已開門，通知後端
-  WebSocketService.getInstance().sendToServer('DOOR_OPENED', {})
+  // 確認開門，通知後端
+  WebSocketService.getInstance().sendToServer('CONFIRM_START', {})
 }
 </script>
 

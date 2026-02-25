@@ -1,7 +1,8 @@
 #!/bin/bash
 # ============================================================
-# 触摸屏坐标修复脚本
+# 触摸屏坐标修复脚本（持久化版本）
 # 用法：在桌面终端运行 bash fix-touch.sh
+#       或 sudo bash fix-touch.sh（创建持久化配置）
 # ============================================================
 
 set -e
@@ -21,7 +22,7 @@ xinput list
 echo ""
 
 # 2. 找触摸设备
-TOUCH_DEVICE=$(xinput list --name-only 2>/dev/null | grep -i -E 'touch|ILITEK|ELAN' | head -1)
+TOUCH_DEVICE=$(xinput list --name-only 2>/dev/null | grep -i -E 'touch|ILITEK|ELAN|finger|touchscreen' | head -1)
 if [ -z "$TOUCH_DEVICE" ]; then
     echo "错误: 未找到触摸设备"
     echo "请从上面的列表中找到触摸设备名称，然后手动运行："
@@ -54,18 +55,22 @@ case "$ROTATION" in
     left)
         echo "   使用 left 旋转矩阵（竖屏，逆时针90度）"
         xinput set-prop "$TOUCH_DEVICE" "Coordinate Transformation Matrix" 0 -1 1 1 0 0 0 0 1
+        MATRIX="0 -1 1 1 0 0 0 0 1"
         ;;
     right)
         echo "   使用 right 旋转矩阵（竖屏，顺时针90度）"
         xinput set-prop "$TOUCH_DEVICE" "Coordinate Transformation Matrix" 0 1 0 -1 0 1 0 0 1
+        MATRIX="0 1 0 -1 0 1 0 0 1"
         ;;
     inverted)
         echo "   使用 inverted 旋转矩阵（倒置）"
         xinput set-prop "$TOUCH_DEVICE" "Coordinate Transformation Matrix" -1 0 1 0 -1 1 0 0 1
+        MATRIX="-1 0 1 0 -1 1 0 0 1"
         ;;
     *)
         echo "   使用默认矩阵（横屏）"
         xinput set-prop "$TOUCH_DEVICE" "Coordinate Transformation Matrix" 1 0 0 0 1 0 0 0 1
+        MATRIX="1 0 0 0 1 0 0 0 1"
         ;;
 esac
 echo ""
@@ -74,6 +79,44 @@ echo ""
 echo "7. 修复后的坐标变换矩阵:"
 xinput list-props "$TOUCH_DEVICE" | grep "Coordinate Transformation Matrix"
 echo ""
+
+# 8. 创建持久化配置（需要 root 权限）
+if [ "$EUID" -eq 0 ]; then
+    echo "8. 创建持久化配置..."
+    
+    # 提取设备匹配规则
+    MATCH_PRODUCT="touchscreen"
+    if echo "$TOUCH_DEVICE" | grep -qi "ILITEK"; then
+        MATCH_PRODUCT="ILITEK"
+    elif echo "$TOUCH_DEVICE" | grep -qi "ELAN"; then
+        MATCH_PRODUCT="ELAN"
+    fi
+    
+    XORG_CONF="/etc/X11/xorg.conf.d/40-touch-rotation.conf"
+    mkdir -p /etc/X11/xorg.conf.d
+    
+    cat > "$XORG_CONF" << EOF
+# 触摸屏旋转配置
+# 自动生成于 $(date)
+# 设备: $TOUCH_DEVICE
+# 旋转: ${ROTATION:-normal}
+
+Section "InputClass"
+    Identifier "touchscreen rotation"
+    MatchIsTouchscreen "on"
+    MatchProduct "$MATCH_PRODUCT"
+    Option "TransformationMatrix" "$MATRIX"
+EndSection
+EOF
+    
+    echo "   已创建: $XORG_CONF"
+    echo "   重启后自动生效"
+    echo ""
+else
+    echo "8. 跳过持久化配置（需要 sudo 权限）"
+    echo "   如需重启后自动生效，请运行: sudo bash $0"
+    echo ""
+fi
 
 echo "=== 完成 ==="
 echo ""

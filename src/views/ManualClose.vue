@@ -7,9 +7,9 @@
     <img class="center-icon" src="@/assets/folder/hkstp-rvm/手动关门icon.png" />
 
     <!-- 確認按鈕 -->
-    <LoadingButton class="confirm-btn-wrap" @click="onConfirm">
+    <!-- <LoadingButton class="confirm-btn-wrap" @click="onConfirm">
       <img class="confirm-btn" src="@/assets/folder/hkstp-rvm/button.png" />
-    </LoadingButton>
+    </LoadingButton> -->
   </GlobalBg>
 </template>
 
